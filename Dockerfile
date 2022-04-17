@@ -16,27 +16,33 @@ ENV TZ=Europe/Lisbon
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt-get update && apt-get install -y apache2 \
-					php7.4 \
-					libapache2-mod-php7.4 \
-					curl \
-					php-mysql \
-					mysql-client \
-					curl \
-					php7.4-curl \
-					php7.4-xml \
-					zip \
-					wget \
-					ffmpeg \
-					ghostscript \
-					imagemagick \
-					php7.4-gd \
-					libreoffice \
-					php7.4-zip
+RUN apt update && \
+    apt install -y \
+        apache2 \
+        php7.4 \
+        libapache2-mod-php7.4 \
+        curl \
+        php-mysql \
+        mysql-client \
+        curl \
+        php7.4-curl \
+        php7.4-xml \
+        zip \
+        wget \
+        ffmpeg \
+        ghostscript \
+        imagemagick \
+        php7.4-gd \
+        libreoffice \
+        php7.4-zip
 
 #GMAGICK
-RUN apt-get install -y php-pear php7.4-dev graphicsmagick libgraphicsmagick1-dev \
-	&& pecl install gmagick-2.0.4RC1
+RUN apt install -y \
+        php-pear \
+        php7.4-dev \
+        graphicsmagick \
+        libgraphicsmagick1-dev \
+    && pecl install gmagick-2.0.4RC1
 
 RUN curl -SsL https://github.com/collectiveaccess/providence/archive/$CA_PROVIDENCE_VERSION.tar.gz | tar -C /var/www/ -xzf -
 RUN mv /var/www/providence-$CA_PROVIDENCE_VERSION /var/www/providence
