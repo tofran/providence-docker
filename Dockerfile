@@ -43,12 +43,14 @@ ENV APACHE_RUN_DIR      /var/run/apache2
 
 ARG CA_PROVIDENCE_VERSION=1.7.14
 ENV CA_PROVIDENCE_VERSION   $CA_PROVIDENCE_VERSION
-ENV CA_PROVIDENCE_DIR       /var/www/providence
+ENV CA_PROVIDENCE_DIR       /var/www
+ENV INIT_DB                 true
 
 RUN rm -rf /var/www/html && \
+    mkdir -p "$CA_PROVIDENCE_DIR" && \
     curl -SsL "https://github.com/collectiveaccess/providence/archive/$CA_PROVIDENCE_VERSION.tar.gz" \
         | tar -C /tmp -xzf - && \
-    mv "/tmp/providence-$CA_PROVIDENCE_VERSION" "$CA_PROVIDENCE_DIR" && \
+    mv "/tmp/providence-$CA_PROVIDENCE_VERSION"/* "$CA_PROVIDENCE_DIR" && \
     cp "$CA_PROVIDENCE_DIR/setup.php-dist" "$CA_PROVIDENCE_DIR/setup.php" && \
     \
     sed -i "s@DocumentRoot \/var\/www\/html@DocumentRoot \/var\/www@g" /etc/apache2/sites-available/000-default.conf && \
@@ -56,7 +58,6 @@ RUN rm -rf /var/www/html && \
 
 COPY php.ini /etc/php/7.0/cli/php.ini
 COPY php.ini /etc/php/7.4/apache2/php.ini
-
 
 COPY ./entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
