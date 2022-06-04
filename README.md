@@ -1,12 +1,9 @@
-# CollectiveAccess
+# CollectiveAccess providence
 
-## About
+Simple (quite big tho) providence docker image forked from GovernoRegionalAcores/collectiveaccess.
 
-- This image does not contain MySQL, it needs to be linked;
-- Contains both Providence and Pawtucket2;
-- Providence is accessed by <domain>:<port>/providence.
+# Fork goals
 
-## Usage
-
-docker run –link your-mysql:mysql -p 80:80 -e DB_USER=your-dbuser -e DB_PW=yourdbpass -e DB_NAME=yourdbname governoregionalazores/collectiveaccess
-
+- Simplified installation, redicing docker layers, size and unecessary conplexity; 
+- Removed Pawtucket;
+- Allow to specify the CA version during build time;

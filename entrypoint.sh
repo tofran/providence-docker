@@ -1,8 +1,9 @@
 #!/bin/bash
-set -exu
+set -eu
 
-# DATABASE INIT/CONFIG
-# TODO: Make it optional
+echo "Setting up Collective Access..."
+
+# TODO: Make database init optional
 
 mysql \
     --host="$DB_HOST" \
@@ -15,25 +16,20 @@ mysql \
         GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER';
         FLUSH PRIVILEGES;
     "
-# TODO: Understand why would one disable SSL
-# --ssl-mode=DISABLED
 
-#cd $CA_PROVIDENCE_DIR/media/ && mkdir collectiveaccess
-#cd $CA_PROVIDENCE_DIR/media/collectiveaccess && mkdir -p tilepics
-#cd $CA_PAWTUCKET_DIR && chown www-data:www-data . -R && chmod -R u+rX .
-#cd $CA_PROVIDENCE_DIR && chown www-data:www-data . -R && chmod -R u+rX .
+mkdir -p "$CA_PROVIDENCE_DIR/media/collectiveaccess/tilepics"
+chown "$APACHE_RUN_USER":"$APACHE_RUN_USER" -R "$CA_PROVIDENCE_DIR"
 
-sweep() {
-	sed -i "s@define(\"__CA_DB_HOST__\", 'localhost');@define(\"__CA_DB_HOST__\", \'$DB_HOST\');@g" setup.php
-	sed -i "s@define(\"__CA_DB_USER__\", 'my_database_user');@define(\"__CA_DB_USER__\", \'$DB_USER\');@g" setup.php
-	sed -i "s@define(\"__CA_DB_PASSWORD__\", 'my_database_password');@define(\"__CA_DB_PASSWORD__\", \'$DB_PW\');@g" setup.php
-	sed -i "s@define(\"__CA_DB_DATABASE__\", 'name_of_my_database');@define(\"__CA_DB_DATABASE__\", \'$DB_NAME\');@g" setup.php
+sed -i "s@Options Indexes FollowSymLinks@Options@g" /etc/apache2/apache2.conf
+
+define_envs() {
+    sed -i "s@define(\"__CA_DB_HOST__\", 'localhost');@define(\"__CA_DB_HOST__\", \"$DB_HOST\");@g" "$1"
+    sed -i "s@define(\"__CA_DB_USER__\", 'my_database_user');@define(\"__CA_DB_USER__\", \"$DB_USER\");@g" "$1"
+    sed -i "s@define(\"__CA_DB_PASSWORD__\", 'my_database_password');@define(\"__CA_DB_PASSWORD__\", \"$DB_PW\");@g" "$1"
+    sed -i "s@define(\"__CA_DB_DATABASE__\", 'name_of_my_database');@define(\"__CA_DB_DATABASE__\", \"$DB_NAME\");@g" "$1"
 }
 
-cd "$CA_PROVIDENCE_DIR"
-sweep 'pro'
+define_envs "$CA_PROVIDENCE_DIR"
 
-cd "$CA_PAWTUCKET_DIR"
-sweep 'paw'
-
+echo "Starting \"$*\""
 exec "$@"

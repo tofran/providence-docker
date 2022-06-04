@@ -14,7 +14,6 @@ services:
   providence:
     build:
       context: .
-    entrypoint: "/bin/bash"
     depends_on:
       - db
     ports:
@@ -25,10 +24,13 @@ services:
       - DB_NAME=providence
       - DB_HOST=db
       - DB_ROOT_PASSWORD=password
-    networks:
-      - providence
     volumes:
       - ./entrypoint.sh:/entrypoint.sh
+      # - ./volumes/providence-config:/var/www/providence/app/conf
+      # - ./volumes/media:/var/www/providence/media/
+      # - /volumes/pawtucket-config:/var/www/app/conf
+    networks:
+      - providence
 
 networks:
   providence:
