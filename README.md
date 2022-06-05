@@ -6,5 +6,6 @@ Simple (quite big tho) providence docker image forked from GovernoRegionalAcores
 
 - Simplified installation, reduced docker layers, image size and unecessary conplexity;
 - Removed Pawtucket;
-- Reviwed all the code and made the shell code production ready;
+- Reviwed all the code making it production ready;
 - Allow to specify the CA version during build time;
+- Allow all configuration via env vars;

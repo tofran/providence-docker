@@ -19,13 +19,14 @@ services:
     ports:
       - 8080:80
     environment:
-      - DB_USER=providence-user
-      - DB_PW=password
-      - DB_NAME=providence
-      - DB_HOST=db
       - DB_ROOT_PASSWORD=password
+      - CA_DB_HOST=db
+      - CA_DB_USER=providence-user
+      - CA_DB_PASSWORD=password
+      - CA_DB_DATABASE=providence
     volumes:
       - ./entrypoint.sh:/entrypoint.sh
+      - ./providence-setup.php:/var/www/setup.php
       # - ./volumes/providence-config:/var/www/providence/app/conf
       # - ./volumes/media:/var/www/providence/media/
       # - /volumes/pawtucket-config:/var/www/app/conf

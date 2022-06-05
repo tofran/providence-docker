@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
-ENV TZ=Europe/Lisbon
+ARG TZ=Europe/Lisbon
+ENV TZ=$TZ
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt update && \
@@ -44,18 +45,20 @@ ENV APACHE_RUN_DIR      /var/run/apache2
 ARG CA_PROVIDENCE_VERSION=1.7.14
 ENV CA_PROVIDENCE_VERSION   $CA_PROVIDENCE_VERSION
 ENV CA_PROVIDENCE_DIR       /var/www
-ENV INIT_DB                 true
+ENV INIT_DB              true
 
 RUN rm -rf /var/www/html && \
     mkdir -p "$CA_PROVIDENCE_DIR" && \
     curl -SsL "https://github.com/collectiveaccess/providence/archive/$CA_PROVIDENCE_VERSION.tar.gz" \
         | tar -C /tmp -xzf - && \
     mv "/tmp/providence-$CA_PROVIDENCE_VERSION"/* "$CA_PROVIDENCE_DIR" && \
-    cp "$CA_PROVIDENCE_DIR/setup.php-dist" "$CA_PROVIDENCE_DIR/setup.php" && \
+    cp -r "/$CA_PROVIDENCE_DIR/app/conf" "/$CA_PROVIDENCE_DIR/app/default-conf" && \
     \
     sed -i "s@DocumentRoot \/var\/www\/html@DocumentRoot \/var\/www@g" /etc/apache2/sites-available/000-default.conf && \
+    sed -i "s@Options Indexes FollowSymLinks@Options@g" /etc/apache2/apache2.conf && \
     chown -R "$APACHE_RUN_USER":"$APACHE_RUN_USER" /var/www/
 
+COPY providence-setup.php "$CA_PROVIDENCE_DIR/setup.php"
 COPY php.ini /etc/php/7.0/cli/php.ini
 COPY php.ini /etc/php/7.4/apache2/php.ini
 
