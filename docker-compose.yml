@@ -27,9 +27,8 @@ services:
     volumes:
       - ./entrypoint.sh:/entrypoint.sh
       - ./providence-setup.php:/var/www/setup.php
-      # - ./volumes/providence-config:/var/www/providence/app/conf
-      # - ./volumes/media:/var/www/providence/media/
-      # - /volumes/pawtucket-config:/var/www/app/conf
+      - ./volumes/providence-config:/var/www/app/conf
+      - ./volumes/pawtucket-config:/var/www/media
     networks:
       - providence
 
