@@ -3,6 +3,8 @@ version: '3.9'
 services:
   db:
     image: mysql:8-oracle
+    ports:
+      - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=test
@@ -28,7 +30,7 @@ services:
       - ./entrypoint.sh:/entrypoint.sh
       - ./providence-setup.php:/var/www/setup.php
       - ./volumes/providence-config:/var/www/app/conf
-      - ./volumes/pawtucket-config:/var/www/media
+      - ./volumes/media:/var/www/media
     networks:
       - providence
 
