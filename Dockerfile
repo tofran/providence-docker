@@ -43,20 +43,20 @@ ENV APACHE_PID_FILE     /var/run/apache2.pid
 ENV APACHE_RUN_DIR      /var/run/apache2
 
 ARG CA_PROVIDENCE_VERSION=1.7.14
-ENV CA_PROVIDENCE_VERSION   $CA_PROVIDENCE_VERSION
-ENV CA_PROVIDENCE_DIR       /var/www
-ENV INIT_DB              true
+ENV CA_PROVIDENCE_VERSION $CA_PROVIDENCE_VERSION
+ENV CA_PROVIDENCE_DIR     /var/www
+ENV INIT_DB               true
 
 RUN rm -rf /var/www/html && \
     mkdir -p "$CA_PROVIDENCE_DIR" && \
     curl -SsL "https://github.com/collectiveaccess/providence/archive/$CA_PROVIDENCE_VERSION.tar.gz" \
         | tar -C /tmp -xzf - && \
     mv "/tmp/providence-$CA_PROVIDENCE_VERSION"/* "$CA_PROVIDENCE_DIR" && \
-    cp -r "/$CA_PROVIDENCE_DIR/app/conf" "/$CA_PROVIDENCE_DIR/app/default-conf" && \
+    cp -r "/$CA_PROVIDENCE_DIR/app/conf" "/$CA_PROVIDENCE_DIR/app/conf-default" && \
     \
     sed -i "s@DocumentRoot \/var\/www\/html@DocumentRoot \/var\/www@g" /etc/apache2/sites-available/000-default.conf && \
     sed -i "s@Options Indexes FollowSymLinks@Options@g" /etc/apache2/apache2.conf && \
-    chown -R "$APACHE_RUN_USER":"$APACHE_RUN_USER" /var/www/
+    chown -R "$APACHE_RUN_USER":"$APACHE_RUN_GROUP" /var/www/
 
 COPY providence-setup.php "$CA_PROVIDENCE_DIR/setup.php"
 COPY php.ini /etc/php/7.0/cli/php.ini
