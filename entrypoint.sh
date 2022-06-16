@@ -20,14 +20,14 @@ fi
 
 mkdir -p "$CA_PROVIDENCE_DIR/media/collectiveaccess/tilepics"
 
+if [ -z "$(ls -A "$CA_PROVIDENCE_DIR/app/conf")" ]; then
+   echo "Providence configuration directory empty. Applying defaults."
+   cp -r "$CA_PROVIDENCE_DIR/app/conf-default/*" "$CA_PROVIDENCE_DIR/app/conf"
+fi
+
 if [ "${ENSURE_PERMISSIONS-false}" = true ] ; then
     echo "ChOwning providence installation to $APACHE_RUN_USER:$APACHE_RUN_GROUP"
     chown "$APACHE_RUN_USER":"$APACHE_RUN_GROUP" -R "$CA_PROVIDENCE_DIR"
-fi
-
-if [ -z "$(ls -A "$CA_PROVIDENCE_DIR/app/conf")" ]; then
-   echo "Providence configuration directory empty. Applying defaults."
-   cp -r "$CA_PROVIDENCE_DIR/app/conf-default" "$CA_PROVIDENCE_DIR/app/conf"
 fi
 
 echo "Running \"$*\""
