@@ -22,7 +22,7 @@ mkdir -p "$CA_PROVIDENCE_DIR/media/collectiveaccess/tilepics"
 
 if [ -z "$(ls -A "$CA_PROVIDENCE_DIR/app/conf")" ]; then
    echo "Providence configuration directory empty. Applying defaults."
-   cp -r "$CA_PROVIDENCE_DIR/app/conf-default/*" "$CA_PROVIDENCE_DIR/app/conf"
+   cp -r "$CA_PROVIDENCE_DIR/app/conf-default/"* "$CA_PROVIDENCE_DIR/app/conf"
 fi
 
 if [ "${ENSURE_PERMISSIONS-false}" = true ] ; then
