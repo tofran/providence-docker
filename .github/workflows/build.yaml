@@ -38,7 +38,7 @@ jobs:
         id: docker_metadata
         uses: docker/metadata-action@v4
         with:
-          images: >-
+          images: |
             ghcr.io/tofran/providence
             ghcr.io/tofran/providence-docker
           tags: |
