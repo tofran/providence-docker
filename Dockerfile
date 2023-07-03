@@ -8,7 +8,7 @@ WORKDIR /var/www
 
 RUN apt update && \
     apt upgrade -y && \
-    apt install -y \
+    apt install --no-install-recommends -y \
         curl \
         ffmpeg \
         ghostscript \
@@ -24,12 +24,12 @@ RUN apt update && \
         libonig-dev \
         libgmp-dev \
     && \
-    apt clean \
-    && \
     mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
     docker-php-ext-install gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip && \
     pecl install gmagick-2.0.6RC1 redis-5.3.7 && \
-    docker-php-ext-enable gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip gmagick redis
+    docker-php-ext-enable gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip gmagick redis \
+    && \
+    apt clean
 
 ARG APACHE_RUN_USER=www-data
 ARG APACHE_RUN_GROUP=www-data
@@ -50,6 +50,8 @@ RUN rm -rf /var/www/html && \
         | tar -C /tmp -xzf - && \
     mkdir -p "$CA_PROVIDENCE_DIR" && \
     mv "/tmp/providence-$CA_PROVIDENCE_VERSION"/* "$CA_PROVIDENCE_DIR" && \
+    rm -rf License.txt README.md SECURITY.md THANKS.txt Vagrantfile Vagrantfile.debian-stretch64 Warranty.txt \
+        tests assets/universalviewer/src && \
     cp -r "/$CA_PROVIDENCE_DIR/app/conf" "/$CA_PROVIDENCE_DIR/app/conf-default" && \
     mkdir -p "$CA_PROVIDENCE_DIR/media/collectiveaccess" && \
     \
