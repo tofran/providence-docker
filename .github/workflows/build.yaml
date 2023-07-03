@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
   release:
     types:
       - published
@@ -12,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build and publish image
+    name: Build and publish Docker image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,22 +39,23 @@ jobs:
         with:
           images: |
             ghcr.io/tofran/providence
-            ghcr.io/tofran/providence-docker
+            tofran/providence
           tags: |
             type=sha
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
 
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: ./
           file: ./Dockerfile
-          platforms: linux/amd64, linux/arm64, linux/386
+          platforms: linux/amd64, linux/arm64/v8
           tags: ${{ steps.docker_metadata.outputs.tags }}
           labels: ${{ steps.docker_metadata.outputs.labels }}
           cache-from: type=gha
