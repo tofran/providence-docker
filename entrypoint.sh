@@ -39,7 +39,7 @@ sed -iE 's/^;\?\s*expose_php\s\?=.*/expose_php = Off/'                     "$php
 sed -iE 's/^;\?\s*memory_limit\s\?=.*/memory_limit = 1024M/'               "$php_ini_path"
 sed -iE 's/^;\?\s*max_execution_time\s\?=.*/max_execution_time = 90/'      "$php_ini_path"
 sed -iE 's/^;\?\s*post_max_size\s\?=.*/post_max_size = 800M/'              "$php_ini_path"
-sed -ir 's/^;\?\s*upload_max_filesize\\s\?=.*/upload_max_filesize = 800M/' "$php_ini_path"
+sed -ir 's/^;\?\s*upload_max_filesize\s\?=.*/upload_max_filesize = 800M/'  "$php_ini_path"
 sed -iE 's/^;\?\s*max_input_vars\s\?=.*/max_input_vars = 1500/'            "$php_ini_path"
 
 echo "Entrypoint setup complete. Running \"$*\""

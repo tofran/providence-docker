@@ -2,6 +2,12 @@
 // Helper to setup Providence with environment variables.
 // See Providence's setup.php-dist for variable documentation.
 
+if (getenv('CA_DEBUG') == 'true'){
+  ini_set('display_errors', 1);
+  ini_set('display_startup_errors', 1);
+  error_reporting(E_ALL);
+}
+
 date_default_timezone_set(getenv('TZ') ?: 'Etc/UTC');
 
 $ENV_NAME_TO_DEFAULT_VALUE = [
