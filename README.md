@@ -1,28 +1,48 @@
-# CollectiveAccess providence
+# CollectiveAccess Providence Docker image
 
-Production ready Providence Docker image forked from GovernoRegionalAcores/collectiveaccess.
+Production ready multi-arch Providence Docker image.
+[Providence] is a dynamic cataloguing and data/media management application
+(widely used by museums), part of the [CollectiveAccess] project.
 
-# Fork goals
+`docker pull ghcr.io/tofran/providence`
 
-- Simplified installation, reduced docker layers, image size and unecessary conplexity;
-- Removed Pawtucket;
-- Reviwed all the code making it production ready;
-- Allow to specify the CA version during build time;
-- Allow all configuration via env vars;
+OR
 
-# Statefull directories
+`docker pull tofran/providence`
 
-- `/var/www/app/conf`: providance configuration
-- `/var/www/media`: collective access media files
+## Configuration
 
-# Env vars
+### Environment variables
 
-| Env var name         | description                                         |
-| -------------------- | ----------------------------------------------------|
-| INIT_DB              | true to create the database, user and permissions   |
-| DB_ROOT_PASSWORD     | required to init the database                       |
-| CA_DB_HOST           | database host                                       |
-| CA_DB_DATABASE       | database name                                       |
-| CA_DB_USER           | database username                                   |
-| CA_DB_PASSWORD       | database password                                   |
-| ENSURE_PERMISSIONS   | true to chown files to apache user                  |
+| Env var name           | Description                                         |
+| ---------------------- | ----------------------------------------------------|
+| `INIT_DB`              | `true` to create the database, user and permissions |
+| `DB_ROOT_PASSWORD`     | required if `INIT_DB` is set                        |
+| `CA_DB_HOST`           | database host                                       |
+| `CA_DB_DATABASE`       | database name                                       |
+| `CA_DB_USER`           | database username                                   |
+| `CA_DB_PASSWORD`       | database password                                   |
+| `ENSURE_PERMISSIONS`   | `true` to chown files to the apache user            |
+
+### Stateful directories
+
+The following directories are not ephemeral and should be preserved:
+
+- `/var/www/app/conf`: Providence configuration
+- `/var/www/media`: Collective access media files
+
+## Attribution and acknowledgement
+
+This image is based on the stale project created by 
+[Governo Regional dos Açores](https://github.com/GovernoRegionalAcores/collectiveaccess).
+Thank you Alberto Branco and Pedro Amorim.
+This is a hard fork, the main changes are:
+
+- Simplified installation, reduced docker layers, image size and unnecessary complexity;
+- Removed Pawtucket, I only want a single component in this image;
+- Enable configuration via environment variables;
+- Improved scripts resiliency, code smells and overall tried to make everything production ready.
+
+
+[Providence]: https://github.com/collectiveaccess/providence/
+[CollectiveAccess]: https://www.collectiveaccess.org
