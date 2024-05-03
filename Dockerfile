@@ -4,8 +4,6 @@ ARG TZ=Etc/UTC
 ENV TZ=$TZ
 RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
 
-WORKDIR /var/www
-
 RUN apt update && \
     apt upgrade -y && \
     apt install --no-install-recommends -y \
@@ -13,23 +11,21 @@ RUN apt update && \
         ffmpeg \
         ghostscript \
         imagemagick \
+        libmagickwand-dev \
         libreoffice \
         libzip-dev \
         mariadb-client \
         wget \
         zip \
-        graphicsmagick \
-        graphicsmagick-libmagick-dev-compat \
-        libgraphicsmagick1-dev \
         libonig-dev \
         libgmp-dev \
     && \
     mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
-    docker-php-ext-install gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip && \
-    pecl install gmagick-2.0.6RC1 redis-5.3.7 && \
-    docker-php-ext-enable gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip gmagick redis \
-    && \
-    apt clean
+    docker-php-ext-install gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip && \
+    pecl install imagick-3.7.0 && \
+    docker-php-ext-enable gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip imagick
+
+WORKDIR /var/www
 
 ARG APACHE_RUN_USER=www-data
 ARG APACHE_RUN_GROUP=www-data

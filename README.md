@@ -1,6 +1,7 @@
 # CollectiveAccess Providence Docker image
 
-Production ready multi-arch Providence Docker image.
+Production ready multi-arch up-to-date Providence Docker image.
+
 [Providence] is a dynamic cataloguing and data/media management application
 (widely used by museums), part of the [CollectiveAccess] project.
 
@@ -18,11 +19,11 @@ OR
 | ---------------------- | ----------------------------------------------------|
 | `INIT_DB`              | `true` to create the database, user and permissions |
 | `DB_ROOT_PASSWORD`     | required if `INIT_DB` is set                        |
-| `CA_DB_HOST`           | database host                                       |
-| `CA_DB_DATABASE`       | database name                                       |
-| `CA_DB_USER`           | database username                                   |
-| `CA_DB_PASSWORD`       | database password                                   |
-| `ENSURE_PERMISSIONS`   | `true` to chown files to the apache user            |
+| `CA_DB_HOST`           | MariaDB (or MySQL) database host                    |
+| `CA_DB_DATABASE`       | MariaDB (or MySQL) database name                    |
+| `CA_DB_USER`           | MariaDB (or MySQL) database username                |
+| `CA_DB_PASSWORD`       | MariaDB (or MySQL) database password                |
+| `ENSURE_PERMISSIONS`   | `true` to chown data files to the apache user       |
 
 ### Stateful directories
 

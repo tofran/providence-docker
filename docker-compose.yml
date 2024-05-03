@@ -26,11 +26,12 @@ services:
     build:
       context: .
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - 8080:80
     environment:
-      - INIT_DB=false
+      - INIT_DB=true
       - DB_ROOT_PASSWORD=password
       - CA_DB_HOST=db
       - CA_DB_USER=providence-user
