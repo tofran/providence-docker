@@ -29,6 +29,7 @@ WORKDIR /var/www
 
 ARG APACHE_RUN_USER=www-data
 ARG APACHE_RUN_GROUP=www-data
+
 ENV APACHE_RUN_USER     $APACHE_RUN_USER
 ENV APACHE_RUN_GROUP    $APACHE_RUN_GROUP
 ENV APACHE_LOCK_DIR     /var/lock/apache2
@@ -37,6 +38,7 @@ ENV APACHE_PID_FILE     /var/run/apache2.pid
 ENV APACHE_RUN_DIR      /var/run/apache2
 
 ARG CA_PROVIDENCE_VERSION=1.7.17
+
 ENV CA_PROVIDENCE_VERSION $CA_PROVIDENCE_VERSION
 ENV CA_PROVIDENCE_DIR     /var/www
 ENV INIT_DB               true
@@ -56,7 +58,7 @@ RUN rm -rf /var/www/html && \
     chown -R "$APACHE_RUN_USER:$APACHE_RUN_GROUP" /var/www/
 
 COPY providence-setup.php "$CA_PROVIDENCE_DIR/setup.php"
-
 COPY ./entrypoint.sh /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD [ "/usr/sbin/apache2", "-DFOREGROUND" ]

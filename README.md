@@ -32,11 +32,12 @@ The following directories are not ephemeral and should be preserved:
 - `/var/www/app/conf`: Providence configuration
 - `/var/www/media`: Collective access media files
 
-## Attribution and acknowledgement
+## Fork attribution
 
-This image is based on the stale project created by 
+This image is based (although heavily modified), on the stale project created by 
 [Governo Regional dos Açores](https://github.com/GovernoRegionalAcores/collectiveaccess).
-Thank you Alberto Branco and Pedro Amorim.
+Thank you Alberto Branco and Pedro Amorim for your work 🇵🇹.
+
 This is a hard fork, the main changes are:
 
 - Simplified installation, reduced docker layers, image size and unnecessary complexity;
