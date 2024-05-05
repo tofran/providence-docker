@@ -32,6 +32,12 @@ The following directories are not ephemeral and should be preserved:
 - `/var/www/app/conf`: Providence configuration
 - `/var/www/media`: Collective access media files
 
+## Enabled providence features
+
+This container out of the box has the following capabilities:
+
+![Screenshot of providence config check](https://github.com/tofran/providence-docker/assets/5692603/101d6f55-9329-49e6-b5b0-d4b6c837fe35)
+
 ## Fork attribution
 
 This image is based (although heavily modified), on the stale project created by 

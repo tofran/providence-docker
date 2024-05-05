@@ -53,6 +53,12 @@ jobs:
             type=sha
             type=ref,event=branch
             type=ref,event=pr
+            type=semver,pattern={{version}}@${{ github.run_id }}
+            type=semver,pattern={{major}}.{{minor}}@${{ github.run_id }}
+            type=semver,pattern={{major}}@${{ github.run_id }}
+            type=semver,pattern={{version}}@${{ github.sha }}
+            type=semver,pattern={{major}}.{{minor}}@${{ github.sha }}
+            type=semver,pattern={{major}}@${{ github.sha }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
