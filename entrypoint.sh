@@ -10,10 +10,10 @@ if [ "${INIT_DB:-false}" = true ] ; then
         --user="root" \
         --password="$DB_ROOT_PASSWORD" \
         --execute="
-            CREATE DATABASE IF NOT EXISTS $CA_DB_DATABASE;
+            CREATE DATABASE IF NOT EXISTS \`$CA_DB_DATABASE\`;
             CREATE USER IF NOT EXISTS '$CA_DB_USER';
             ALTER USER '$CA_DB_USER'@'%' IDENTIFIED BY '$CA_DB_PASSWORD';
-            GRANT ALL PRIVILEGES ON $CA_DB_DATABASE.* TO '$CA_DB_USER';
+            GRANT ALL PRIVILEGES ON \`$CA_DB_DATABASE\`.* TO '$CA_DB_USER';
             FLUSH PRIVILEGES;
         "
     
@@ -41,6 +41,15 @@ sed -iE 's/^;\?\s*max_execution_time\s\?=.*/max_execution_time = 90/'      "$php
 sed -iE 's/^;\?\s*post_max_size\s\?=.*/post_max_size = 800M/'              "$php_ini_path"
 sed -ir 's/^;\?\s*upload_max_filesize\s\?=.*/upload_max_filesize = 800M/'  "$php_ini_path"
 sed -iE 's/^;\?\s*max_input_vars\s\?=.*/max_input_vars = 1500/'            "$php_ini_path"
+
+# Fix bug where the `report_img` cannot be an svg because .docx export fail when the logo is an svg.
+# https://github.com/collectiveaccess/providence/issues/1572
+# TODO: Remove this code onde the default config works.
+app_config_file_path="$CA_PROVIDENCE_DIR/app/conf/app.conf"
+if grep -q "report_img = logo.svg" "$app_config_file_path"; then
+    sed -i 's/report_img = logo\.svg/report_img = menu_logo\.png/' "$app_config_file_path"
+    echo "Warning: app.conf 'report_img = logo.svg' replaced with 'report_img = menu_logo.png' in '$app_config_file_path'"
+fi
 
 echo "Entrypoint setup complete. Running \"$*\""
 exec "$@"

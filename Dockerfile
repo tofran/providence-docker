@@ -1,12 +1,14 @@
 FROM php:7.4-apache-bullseye
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ARG TZ=Etc/UTC
 ENV TZ=$TZ
-RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
 
-RUN apt update && \
-    apt upgrade -y && \
-    apt install --no-install-recommends -y \
+RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone && \
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install --no-install-recommends -y \
         curl \
         ffmpeg \
         ghostscript \
@@ -19,11 +21,13 @@ RUN apt update && \
         zip \
         libonig-dev \
         libgmp-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
     && \
     mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
-    docker-php-ext-install gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip && \
+    docker-php-ext-install gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip && \
     pecl install imagick-3.7.0 && \
-    docker-php-ext-enable gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip imagick
+    docker-php-ext-enable gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip imagick
 
 WORKDIR /var/www
 
@@ -57,7 +61,7 @@ RUN rm -rf /var/www/html && \
     sed -i "s@Options Indexes FollowSymLinks@Options@g" /etc/apache2/apache2.conf && \
     chown -R "$APACHE_RUN_USER:$APACHE_RUN_GROUP" /var/www/
 
-COPY providence-setup.php "$CA_PROVIDENCE_DIR/setup.php"
+COPY ./providence-setup.php "$CA_PROVIDENCE_DIR/setup.php"
 COPY ./entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

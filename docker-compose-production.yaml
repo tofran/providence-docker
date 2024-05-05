@@ -1,0 +1,55 @@
+# This is an example for a production ready docker-compose for running Providence.
+# Make sure to adapt it to your needs or use it as inspiration to build k8s deployments, helm, etc
+# (Contributions are welcome)
+# Use a .env to override variables here (refer to the README.md)
+
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:10
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=${DB_DATABASE}
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./maria-db-data:/var/lib/mysql
+    networks:
+      - providence
+    healthcheck:
+      test: 'mariadb-admin --password="$$MARIADB_ROOT_PASSWORD" --silent ping'
+      interval: 5s
+      timeout: 5s
+      retries: 4
+
+  providence:
+    image: tofran/providence:test
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 80:80
+    environment:
+      - INIT_DB=true
+      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - ENSURE_PERMISSIONS=true
+      - CA_DB_HOST=db
+      - CA_DB_DATABASE=${CA_DB_DATABASE}
+      - CA_DB_USER=${CA_DB_USER}
+      - CA_DB_PASSWORD=${CA_DB_PASSWORD}
+      - CA_DB_TYPE=mysqli
+      - CA_OUT_OF_PROCESS_SEARCH_INDEXING_PORT=80
+      - CA_OUT_OF_PROCESS_SEARCH_INDEXING_PROTOCOL=tcp
+      - CA_OUT_OF_PROCESS_SEARCH_INDEXING_HOSTNAME=localhost
+      - CA_DEBUG=true
+    volumes:
+      - ./providence-config:/var/www/app/conf
+      - ./providence-media:/var/www/media
+    networks:
+      - providence
+
+networks:
+  providence:

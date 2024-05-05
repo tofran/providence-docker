@@ -1,4 +1,5 @@
-# WARNING: This configuration is meant for development/testing, do not use for production
+# WARNING: This file is intended for development/testing of this project, do not use for production!
+# Check out the docker-compose-production.yaml for a better example.
 
 version: '3.9'
 
@@ -9,15 +10,15 @@ services:
       - 3306:3306
     environment:
       - MARIADB_ROOT_PASSWORD=password
-      - MARIADB_DATABASE=test
-      - MARIADB_USER=test-user
+      - MARIADB_DATABASE=providence-test-db
+      - MARIADB_USER=providence-user
       - MARIADB_PASSWORD=password
     volumes:
       - ./volumes/db:/var/lib/mysql
     networks:
       - providence
     healthcheck:
-      test: 'mariadb-admin --password="$$MARIADB_PASSWORD" --silent ping'
+      test: 'mariadb-admin --password="$$MARIADB_ROOT_PASSWORD" --silent ping'
       interval: 5s
       timeout: 5s
       retries: 4
@@ -33,19 +34,21 @@ services:
     environment:
       - INIT_DB=true
       - DB_ROOT_PASSWORD=password
+      - ENSURE_PERMISSIONS=false
       - CA_DB_HOST=db
+      - CA_DB_DATABASE=providence-test-db
       - CA_DB_USER=providence-user
       - CA_DB_PASSWORD=password
-      - CA_DB_DATABASE=providence
-      - ENSURE_PERMISSIONS=false
       - CA_DB_TYPE=mysqli
       - CA_OUT_OF_PROCESS_SEARCH_INDEXING_PORT=80
       - CA_OUT_OF_PROCESS_SEARCH_INDEXING_PROTOCOL=tcp
       - CA_OUT_OF_PROCESS_SEARCH_INDEXING_HOSTNAME=localhost
       - CA_DEBUG=true
     volumes:
+      # Volumes for ease of development:
       - ./entrypoint.sh:/entrypoint.sh
       - ./providence-setup.php:/var/www/setup.php
+      # Volumes that the end user should use to persist data:
       - ./volumes/providence-config:/var/www/app/conf
       - ./volumes/media:/var/www/media
     networks:
