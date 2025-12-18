@@ -1,4 +1,4 @@
-FROM php:7.4-apache-bullseye
+FROM php:8.3-apache-bookworm
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -25,9 +25,9 @@ RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezo
     && rm -rf /var/lib/apt/lists/* \
     && \
     mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
-    docker-php-ext-install gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip && \
-    pecl install imagick-3.7.0 && \
-    docker-php-ext-enable gd gmp intl mbstring mysqli pdo_mysql posix xmlrpc zip imagick
+    docker-php-ext-install gd gmp intl mbstring mysqli pdo_mysql posix zip && \
+    pecl install imagick && \
+    docker-php-ext-enable gd gmp intl mbstring mysqli pdo_mysql posix zip imagick
 
 WORKDIR /var/www
 
@@ -41,7 +41,7 @@ ENV APACHE_LOG_DIR      /var/log/apache2
 ENV APACHE_PID_FILE     /var/run/apache2.pid
 ENV APACHE_RUN_DIR      /var/run/apache2
 
-ARG CA_PROVIDENCE_VERSION=1.7.17
+ARG CA_PROVIDENCE_VERSION=2.0.9
 
 ENV CA_PROVIDENCE_VERSION $CA_PROVIDENCE_VERSION
 ENV CA_PROVIDENCE_DIR     /var/www
