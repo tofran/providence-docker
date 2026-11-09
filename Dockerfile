@@ -88,6 +88,15 @@ RUN rm -rf /var/www/html && \
     sed -i "s@Options Indexes FollowSymLinks@Options@g" /etc/apache2/apache2.conf && \
     chown -R "$APACHE_RUN_USER:$APACHE_RUN_GROUP" /var/www/
 
+# Workaround: since 2.0.12 caGetHTMLPurifier() builds a new HTMLPurifier_HTML5Config on every
+# call, leaving ~0.8 MB of cyclic garbage each time. The web installer exhausts its 512M limit
+# before PHP's cycle collector runs. Reuse one instance per request (its config is static).
+# The grep fails the build if the function changes upstream, so the patch gets re-checked.
+RUN perl -0pi -e 's/(function caGetHTMLPurifier\(\?array \$options=null\) : HTMLPurifier \{\n)/$1\t\tstatic \$purifier = null;\n\t\tif (\$purifier) { return \$purifier; }\n/; s/return new HTMLPurifier\(\$config\);/return \$purifier = new HTMLPurifier(\$config);/' \
+        "$CA_PROVIDENCE_DIR/app/helpers/utilityHelpers.php" && \
+    grep -q 'return $purifier = new HTMLPurifier($config);' "$CA_PROVIDENCE_DIR/app/helpers/utilityHelpers.php" && \
+    grep -q 'if ($purifier) { return $purifier; }' "$CA_PROVIDENCE_DIR/app/helpers/utilityHelpers.php"
+
 COPY ./providence-setup.php "$CA_PROVIDENCE_DIR/setup.php"
 COPY ./entrypoint.sh /entrypoint.sh
 

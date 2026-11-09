@@ -36,7 +36,7 @@ The following directories are not ephemeral and should be preserved:
 
 This container out of the box has the following capabilities:
 
-![Screenshot of providence config check](https://github.com/tofran/providence-docker/assets/5692603/101d6f55-9329-49e6-b5b0-d4b6c837fe35)
+![Screenshot of providence config check](./config-check.png)
 
 ## Fork attribution
 
