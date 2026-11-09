@@ -7,88 +7,162 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGES: |
+    tofran/providence
+    ghcr.io/tofran/providence
+  METADATA_TAGS: |
+    type=sha
+    type=ref,event=branch
+    type=ref,event=pr
+    type=semver,pattern={{version}}@${{ github.run_id }}
+    type=semver,pattern={{major}}.{{minor}}@${{ github.run_id }}
+    type=semver,pattern={{major}}@${{ github.run_id }}
+    type=semver,pattern={{version}}@${{ github.sha }}
+    type=semver,pattern={{major}}.{{minor}}@${{ github.sha }}
+    type=semver,pattern={{major}}@${{ github.sha }}
+    type=semver,pattern={{version}}
+    type=semver,pattern={{major}}.{{minor}}
+    type=semver,pattern={{major}}
+  METADATA_FLAVOR: |
+    latest=${{ github.ref_type == 'tag' }}
+
 jobs:
-  build-and-push:
-    name: Build & push
-    runs-on: ubuntu-latest
+  # Each platform builds on a native runner (no QEMU) and pushes by digest only.
+  # The merge job then publishes the tags as a single multi-arch manifest.
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
+
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
 
     permissions:
       contents: read
-      id-token: write
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Prepare
+        run: echo "PLATFORM_PAIR=${PLATFORM//\//-}" >> "$GITHUB_ENV"
+        env:
+          PLATFORM: ${{ matrix.platform }}
+
+      - uses: actions/checkout@v7
 
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: linux/amd64, linux/arm64/v8
-
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Docker metadata
         id: docker_metadata
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
-          images: |
-            tofran/providence
-            ghcr.io/tofran/providence
-          tags: |
-            type=sha
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}@${{ github.run_id }}
-            type=semver,pattern={{major}}.{{minor}}@${{ github.run_id }}
-            type=semver,pattern={{major}}@${{ github.run_id }}
-            type=semver,pattern={{version}}@${{ github.sha }}
-            type=semver,pattern={{major}}.{{minor}}@${{ github.sha }}
-            type=semver,pattern={{major}}@${{ github.sha }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-          flavor: |
-            latest=${{ github.ref_type == 'tag' }}
+          images: ${{ env.IMAGES }}
+          tags: ${{ env.METADATA_TAGS }}
+          flavor: ${{ env.METADATA_FLAVOR }}
 
-      - name: Build and push (tagged version)
-        if: github.ref_type == 'tag'
-        uses: docker/build-push-action@v5
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v7
         with:
           context: ./
           file: ./Dockerfile
-          platforms: linux/amd64, linux/arm64/v8
-          tags: ${{ steps.docker_metadata.outputs.tags }}
+          platforms: ${{ matrix.platform }}
           labels: ${{ steps.docker_metadata.outputs.labels }}
-          build-args:
-            CA_PROVIDENCE_VERSION=${{ github.ref_name }}
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          build-args: ${{ github.ref_type == 'tag' && format('CA_PROVIDENCE_VERSION={0}', github.ref_name) || '' }}
+          outputs: type=image,"name=tofran/providence,ghcr.io/tofran/providence",push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ env.PLATFORM_PAIR }}
+          cache-to: type=gha,scope=${{ env.PLATFORM_PAIR }},mode=max
 
-      - name: Build and push (all other builds)
-        if: github.ref_type != 'tag'
-        uses: docker/build-push-action@v5
+      - name: Export digest
+        run: |
+          mkdir -p "$RUNNER_TEMP/digests"
+          touch "$RUNNER_TEMP/digests/${DIGEST#sha256:}"
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v7
         with:
-          context: ./
-          file: ./Dockerfile
-          platforms: linux/amd64, linux/arm64/v8
-          tags: ${{ steps.docker_metadata.outputs.tags }}
-          labels: ${{ steps.docker_metadata.outputs.labels }}
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: Push multi-arch manifest
+    runs-on: ubuntu-24.04
+    needs: build
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v8
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Docker metadata
+        id: docker_metadata
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGES }}
+          tags: ${{ env.METADATA_TAGS }}
+          flavor: ${{ env.METADATA_FLAVOR }}
+
+      - name: Create and push manifest
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          for image in tofran/providence ghcr.io/tofran/providence; do
+            # shellcheck disable=SC2046
+            docker buildx imagetools create \
+              $(jq -cr --arg image "$image" '.tags | map(select(startswith($image + ":"))) | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+              $(printf "$image@sha256:%s " *)
+          done
+
+      - name: Inspect image
+        run: docker buildx imagetools inspect "ghcr.io/tofran/providence:${{ steps.docker_metadata.outputs.version }}"
