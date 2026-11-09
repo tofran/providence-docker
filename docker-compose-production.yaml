@@ -3,8 +3,6 @@
 # (Contributions are welcome)
 # Use a .env to override variables here (refer to the README.md)
 
-version: '3.9'
-
 services:
   db:
     image: mariadb:10
@@ -27,7 +25,7 @@ services:
       retries: 4
 
   providence:
-    image: tofran/providence:${PROVIDANCE_DOCKER_IMAGE_TAG:-latest}
+    image: tofran/providence:${PROVIDENCE_DOCKER_IMAGE_TAG:-latest}
     restart: always
     depends_on:
       db:

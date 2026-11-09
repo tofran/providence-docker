@@ -5,7 +5,14 @@ set -eu
 if [ "${INIT_DB:-false}" = true ] ; then
     echo -n "Initializing database..."
 
+    # The MariaDB 11.x client requires SSL by default; keep it opt-in for servers without it.
+    ssl_flag="--skip-ssl"
+    if [ "${DB_SSL:-false}" = true ] ; then
+        ssl_flag="--ssl"
+    fi
+
     mysql \
+        "$ssl_flag" \
         --host="$CA_DB_HOST" \
         --user="root" \
         --password="$DB_ROOT_PASSWORD" \
@@ -24,7 +31,7 @@ mkdir -p "$CA_PROVIDENCE_DIR/media/collectiveaccess/tilepics"
 
 if [ -z "$(ls -A "$CA_PROVIDENCE_DIR/app/conf")" ]; then
    echo "Providence configuration directory empty. Applying defaults."
-   cp -r "$CA_PROVIDENCE_DIR/app/conf-default/"* "$CA_PROVIDENCE_DIR/app/conf"
+   cp -a "$CA_PROVIDENCE_DIR/app/conf-default/." "$CA_PROVIDENCE_DIR/app/conf"
 fi
 
 if [ "${ENSURE_PERMISSIONS-false}" = true ] ; then
