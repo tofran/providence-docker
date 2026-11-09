@@ -4,8 +4,12 @@
 # Adapt it to your infrastructure, or use it as a reference for Kubernetes, Helm, etc.
 # Contributions are welcome.
 #
+# This is a complete, standalone stack, not an override of docker-compose.yaml.
+# Copy it to your server as docker-compose.yaml, or run it directly:
+#   docker compose -f docker-compose-production.yaml up -d
+#
 # Configuration comes from a .env file next to this one (see the README for every variable):
-#   PROVIDENCE_DOCKER_IMAGE_TAG=2.0.11   # pin a version; avoid "latest" in production
+#   PROVIDENCE_DOCKER_IMAGE_TAG=2.0.12   # pin a version; avoid "latest" in production
 #   DB_ROOT_PASSWORD=...
 #   CA_DB_DATABASE=providence
 #   CA_DB_USER=providence
@@ -22,7 +26,7 @@
 
 services:
   db:
-    image: mariadb:10
+    image: mariadb:11.8
     restart: always
     # No ports published: the database is only reachable from the providence service.
     environment:
@@ -30,6 +34,8 @@ services:
       - MARIADB_DATABASE=${CA_DB_DATABASE}
       - MARIADB_USER=${CA_DB_USER}
       - MARIADB_PASSWORD=${CA_DB_PASSWORD}
+      # Run mariadb-upgrade on start when the data directory was created by an older MariaDB.
+      - MARIADB_AUTO_UPGRADE=1
     volumes:
       - ./maria-db-data:/var/lib/mysql
     networks:

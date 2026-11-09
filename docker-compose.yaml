@@ -13,7 +13,7 @@
 
 services:
   db:
-    image: mariadb:10
+    image: mariadb:11.8
     ports:
       # Exposed so you can inspect the database from the host with any MySQL client.
       - 3306:3306
@@ -22,6 +22,8 @@ services:
       - MARIADB_DATABASE=providence-test-db
       - MARIADB_USER=providence-user
       - MARIADB_PASSWORD=password
+      # Upgrade data directories created by an older MariaDB (e.g. 10.x) on start.
+      - MARIADB_AUTO_UPGRADE=1
     volumes:
       - ./volumes/db:/var/lib/mysql
     networks:

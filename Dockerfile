@@ -1,6 +1,6 @@
 FROM composer:2 AS composer
 
-FROM php:8.4-apache-trixie
+FROM php:8.5-apache-trixie
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -41,7 +41,7 @@ RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezo
     mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
     docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
     docker-php-ext-install -j"$(nproc)" bcmath exif gd gmp intl mbstring mysqli pdo_mysql posix zip && \
-    pecl install imagick-3.8.0 && \
+    pecl install imagick-3.8.1 && \
     docker-php-ext-enable imagick && \
     rm -rf /tmp/pear
 
@@ -59,7 +59,7 @@ ENV APACHE_RUN_USER=$APACHE_RUN_USER \
     APACHE_PID_FILE=/var/run/apache2.pid \
     APACHE_RUN_DIR=/var/run/apache2
 
-ARG CA_PROVIDENCE_VERSION=2.0.11
+ARG CA_PROVIDENCE_VERSION=2.0.12
 
 ENV CA_PROVIDENCE_VERSION=$CA_PROVIDENCE_VERSION \
     CA_PROVIDENCE_DIR=/var/www \
