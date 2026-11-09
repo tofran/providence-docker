@@ -1,14 +1,30 @@
-# This is an example for a production ready docker-compose for running Providence.
-# Make sure to adapt it to your needs or use it as inspiration to build k8s deployments, helm, etc
-# (Contributions are welcome)
-# Use a .env to override variables here (refer to the README.md)
+# Example production deployment of CollectiveAccess Providence with Docker Compose.
+# Project, documentation and issues: https://github.com/tofran/providence-docker
+#
+# Adapt it to your infrastructure, or use it as a reference for Kubernetes, Helm, etc.
+# Contributions are welcome.
+#
+# Configuration comes from a .env file next to this one (see the README for every variable):
+#   PROVIDENCE_DOCKER_IMAGE_TAG=2.0.11   # pin a version; avoid "latest" in production
+#   DB_ROOT_PASSWORD=...
+#   CA_DB_DATABASE=providence
+#   CA_DB_USER=providence
+#   CA_DB_PASSWORD=...
+#
+# Keep backups of these directories, they hold all the state:
+#   ./maria-db-data       database
+#   ./providence-config   Providence configuration (filled with defaults when empty)
+#   ./providence-media    uploaded media
+#
+# Before changing PROVIDENCE_DOCKER_IMAGE_TAG to a newer version, follow the upgrade guide:
+# the configuration directory is never updated by a new image and the database schema
+# must be migrated.
 
 services:
   db:
     image: mariadb:10
     restart: always
-    ports:
-      - 3306:3306
+    # No ports published: the database is only reachable from the providence service.
     environment:
       - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
       - MARIADB_DATABASE=${CA_DB_DATABASE}
@@ -31,11 +47,17 @@ services:
       db:
         condition: service_healthy
     ports:
+      # Plain HTTP. Put a reverse proxy in front of it to terminate TLS (see CA_SITE_PROTOCOL).
       - 80:80
     environment:
+      # Create the database, user and grants on every start (idempotent). Needs DB_ROOT_PASSWORD.
+      # Set DB_SSL=true if your database server requires SSL.
       - INIT_DB=true
       - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      # Chown the installation to the Apache user on start, so mounted files are writable.
       - ENSURE_PERMISSIONS=true
+      # Every CA_* variable maps to the matching __CA_*__ constant of Providence's setup.php
+      # (see providence-setup.php and Providence's setup.php-dist for the full list).
       - CA_DB_HOST=db
       - CA_DB_DATABASE=${CA_DB_DATABASE}
       - CA_DB_USER=${CA_DB_USER}
@@ -45,6 +67,7 @@ services:
       - CA_OUT_OF_PROCESS_SEARCH_INDEXING_PROTOCOL=tcp
       - CA_OUT_OF_PROCESS_SEARCH_INDEXING_HOSTNAME=localhost
       - CA_DEBUG=false
+      # Generate https:// links, for when TLS is terminated by a reverse proxy.
       - CA_SITE_PROTOCOL=https
     volumes:
       - ./providence-config:/var/www/app/conf
