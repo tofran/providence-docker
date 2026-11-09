@@ -95,7 +95,15 @@ RUN rm -rf /var/www/html && \
 RUN perl -0pi -e 's/(function caGetHTMLPurifier\(\?array \$options=null\) : HTMLPurifier \{\n)/$1\t\tstatic \$purifier = null;\n\t\tif (\$purifier) { return \$purifier; }\n/; s/return new HTMLPurifier\(\$config\);/return \$purifier = new HTMLPurifier(\$config);/' \
         "$CA_PROVIDENCE_DIR/app/helpers/utilityHelpers.php" && \
     grep -q 'return $purifier = new HTMLPurifier($config);' "$CA_PROVIDENCE_DIR/app/helpers/utilityHelpers.php" && \
-    grep -q 'if ($purifier) { return $purifier; }' "$CA_PROVIDENCE_DIR/app/helpers/utilityHelpers.php"
+    grep -q 'if ($purifier) { return $purifier; }' "$CA_PROVIDENCE_DIR/app/helpers/utilityHelpers.php" && \
+    \
+    # Workaround: 2.0.12 replaced `use CLIUtilsMigration;` with `use CLIUtilsSitemap;` in caUtils,
+    # dropping the update-from-1-7 and update-database-schema commands. Restore the trait.
+    if ! grep -q 'use CLIUtilsMigration;' "$CA_PROVIDENCE_DIR/app/lib/Utils/CLIUtils.php"; then \
+        perl -pi -e 's/^(\t)use CLIUtilsSitemap;$/$1use CLIUtilsMigration;\n$1use CLIUtilsSitemap;/' \
+            "$CA_PROVIDENCE_DIR/app/lib/Utils/CLIUtils.php" && \
+        grep -q 'use CLIUtilsMigration;' "$CA_PROVIDENCE_DIR/app/lib/Utils/CLIUtils.php"; \
+    fi
 
 COPY ./providence-setup.php "$CA_PROVIDENCE_DIR/setup.php"
 COPY ./entrypoint.sh /entrypoint.sh
